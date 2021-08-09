@@ -76,8 +76,10 @@ function getSM($id)
 }
 
 
-$id= getmypid();
-print_r($id);
+
+
+
+$id= getmypid(); // numero que se asignara, si se usa procesos es mejor identificarlos con el PID
 
 # DIFERENTE TIPO DE GUARDADO DE DATOS
 //openSM(["jose"=>"hombre","perro"=>"pitbull"],$id);
