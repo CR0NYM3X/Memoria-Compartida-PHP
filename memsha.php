@@ -8,7 +8,7 @@
 *	return Error array() | return true
 */
 
-function openSM($msj,$id)   // { dato que quiero compartir } {System's id for the shared memory block. }
+function openSM($msj,$id)
 {
 	
 	$typeMsj=serialize($msj); // serializa el mensaje para enviarlo
