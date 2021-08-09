@@ -2,30 +2,37 @@
 
 
 
-# open  shared memory
+/**
+*	Accede a la memoria compartida y obten su contenido
+*	$id => Identificador que el sistema utilizará para ese segmento de memoria compartida 
+*	return Error array() | return true
+*/
+
 function openSM($msj,$id)   // { dato que quiero compartir } {System's id for the shared memory block. }
 {
 	
+	$typeMsj=serialize($msj); // serializa el mensaje para enviarlo
+	$msjSize = strlen($typeMsj); // Obtiene el tamaño de el mensaje serializado 
 
-	$typeMsj=serialize($msj);
-	$msjSize = strlen($typeMsj);
+	// Cramos la memoria compartido en modo escritura con la letra "c"
 	$shared_id = shmop_open($id,"c",0644,$msjSize);
 
 
+	// se verifica si se creo correctamente la memoria compartida 
    if(!$shared_id)
    {
-        die("\nError al crear la memoria compartida en el hijo ".getmypid()." habilitar la opcion [ -fk ]\n");
+        return ["Error: Al crear la memoria compartida"];
    }
    else
    {
-
-   		 if($msjSize != shmop_write($shared_id, $typeMsj, 0))
+   		// Verifica que se haya escrito en la memoria
+   		if($msjSize != shmop_write($shared_id, $typeMsj, 0))
         {
-            die("\nError al intentar escribir el numero $num en el hijo ".getmypid()." habilitar la opcion [ -fk ]\n");
+           	shmop_close($shared_id); // Solo cierra el segmento de memoria compartida no lo borra
+            return ["Error: Al intentar escribir en el segmento de memoria"];
         }
         else
         {
-
             shmop_close($shared_id);
         	return true;
         }
@@ -38,43 +45,49 @@ function openSM($msj,$id)   // { dato que quiero compartir } {System's id for th
 
 
 
+/**
+*	Accede a la memoria compartida y obten su contenido
+*	$id => Identificador que el sistema utilizará para ese segmento de memoria compartida 
+*	return Error array | return $share_data
+*/
 
 function getSM($id)
 {
 
-
-
-   //Abrimos la memoria compartida con nuestro hijo $pid
-    $shared_id = shmop_open($id,"a",0666,0); // tambien funciona poniendo , 0, 0
+   //Abrimos la memoria en modo lectura con la letra "a" compartida con el id
+    $shared_id = shmop_open($id,"a",0666,0); // tambien funciona poniendo $id,"a",0,0
     
-	if (!empty($shared_id)) {
+	if (!empty($shared_id))
+	{
 
    		$share_data = shmop_read($shared_id,0,shmop_size($shared_id));
 	    
 	    //Marcamos el bloque para que sea eliminado y lo cerramos
-	    shmop_delete($shared_id);
 	    shmop_close($shared_id);
+	    shmop_delete($shared_id); // esta funcion retorna un bool, se podria ferificar si la memoria se cerro;
 	    return unserialize($share_data);
 
-
-	} else {
-	            die("\nError La memoria no existe  habilitar la opcion [ -fk ]\n");
+	}
+	else 
+	{
+		return ["Error: El identificador [ ".$id." ] que se uso para el segmento de memoria no existe"];
 	}
 
 }
 
 
-/*
+
 $id= getmypid();
 
 # DIFERENTE TIPO DE ENVIOS DE DATOS
 //openSM(["jose"=>"hombre","perro"=>"pitbull"],$id);
 //openSM("aasdasda)",$id);
-//openSM('{"jose":"homre","perro":"loco"}',$id);
 
+openSM('{"jose":"homre","perro":"loco"}',$id);
 print_r( getSM($id) ); 
+echo "\n";
 
-*/
+
 
 
 
